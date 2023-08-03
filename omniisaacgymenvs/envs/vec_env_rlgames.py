@@ -34,6 +34,7 @@ import numpy as np
 
 from datetime import datetime
 
+import wandb
 
 # VecEnv Wrapper for RL training
 class VecEnvRLGames(VecEnvBase):
@@ -53,6 +54,21 @@ class VecEnvRLGames(VecEnvBase):
         self.num_states = self._task.num_states
         self.state_space = self._task.state_space
 
+        from omni.isaac.core.simulation_context import SimulationContext
+        self.sim = SimulationContext._instance
+
+        # https://github.com/NVIDIA-Omniverse/Orbit/blob/f5b24bba8218444a04c0ac7b47ac697ada2d7580/source/extensions/omni.isaac.orbit_envs/omni/isaac/orbit_envs/isaac_env.py
+        # check if flatcache is enabled
+        # this is needed to flush the flatcache data into Hydra manually when calling `env.render()`
+        # ref: https://docs.omniverse.nvidia.com/prod_extensions/prod_extensions/ext_physics.html
+        if self._render is False and self.sim.get_physics_context().use_flatcache:
+            from omni.physxflatcache import get_physx_flatcache_interface
+            # acquire flatcache interface
+            self._flatcache_iface = get_physx_flatcache_interface()
+
+        self.num_cameras = self._task.num_cameras
+        self.frames_list = [ [] for _ in range(self.num_cameras) ]
+
     def step(self, actions):
         if self._task.randomize_actions:
             actions = self._task._dr_randomizer.apply_actions_randomization(actions=actions, reset_buf=self._task.reset_buf)
@@ -64,6 +80,31 @@ class VecEnvRLGames(VecEnvBase):
         for _ in range(self._task.control_frequency_inv):
             self._world.step(render=self._render)
             self.sim_frame_count += 1
+
+        if self._render is False:
+            if self.sim.get_physics_context().use_flatcache:
+                self._flatcache_iface.update(0.0, 0.0)
+            self.sim.render()
+
+        curr_frames = self._task.render()
+        for idx in range(self.num_cameras):
+            if isinstance(curr_frames[idx], np.ndarray):
+                if curr_frames[idx].shape[0] > 0:
+                    self.frames_list[idx].append(curr_frames[idx])
+                else:
+                    print(f"{idx} is empty: {curr_frames[idx]}")
+            else:
+                print(f"{idx} is not an np.ndarray: {curr_frames[idx]}")
+            if len(self.frames_list[idx]) >= 10:
+                print("[saving video]")
+                wandb.log(
+                    {
+                        f"camera_{idx}": wandb.Video(
+                            np.array(self.frames_list[idx]).transpose(0, 3, 1, 2),
+                        )
+                    }
+                )
+                self.frames_list[idx] = []
 
         self._obs, self._rew, self._resets, self._extras = self._task.post_physics_step()
 
@@ -82,6 +123,21 @@ class VecEnvRLGames(VecEnvBase):
         """ Resets the task and applies default zero actions to recompute observations and states. """
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(f"[{now}] Running RL reset")
+
+        # TODO: Figure out why
+        # Skips first few steps. Necessary when using domain randomization
+        # Probably need to wait for the replicator to initialize?
+        self._world.step(render=self._render)
+        if self._render is False:
+            if self.sim.get_physics_context().use_flatcache:
+                self._flatcache_iface.update(0.0, 0.0)
+            self.sim.render()
+        while not self._world.is_playing():
+            self._world.step(render=self._render)
+            if self._render is False:
+                if self.sim.get_physics_context().use_flatcache:
+                    self._flatcache_iface.update(0.0, 0.0)
+                self.sim.render()
 
         self._task.reset()
         actions = torch.zeros((self.num_envs, self._task.num_actions), device=self._task.rl_device)

@@ -42,6 +42,8 @@ from omni.kit.viewport.utility.camera_state import ViewportCameraState
 from omni.kit.viewport.utility import get_viewport_from_window_name
 from pxr import Gf
 
+import omni.replicator.core as rep
+
 class RLTask(BaseTask):
 
     """ This class provides a PyTorch RL-specific interface for setting up RL tasks. 
@@ -82,6 +84,10 @@ class RLTask(BaseTask):
 
         self._env = env
 
+        assert self._cfg["task"]["sim"]["enable_cameras"], "enable_cameras needs to be True when capturing videos"
+        self.num_cameras = 5
+        self.spawn_cameras()
+
         if not hasattr(self, "_num_agents"):
             self._num_agents = 1  # used for multi-agent environments
         if not hasattr(self, "_num_states"):
@@ -111,6 +117,29 @@ class RLTask(BaseTask):
         self.reset_buf = torch.ones(self._num_envs, device=self._device, dtype=torch.long)
         self.progress_buf = torch.zeros(self._num_envs, device=self._device, dtype=torch.long)
         self.extras = {}
+        
+    def spawn_cameras(self):        
+        self.render_products = []
+        self.rgb_annotators = []
+        for idx in range(self.num_cameras):
+            cam = rep.create.camera(
+                position=np.array([10.0 + 2.0 * idx, 10.0, 3.0]),
+                look_at=np.array([0.0, 0.0, 0.0]),
+                # Note: Do not start clipping_range at 0.0, as it will cause black images
+                clipping_range=(0.01, 1000.0),
+                name=f"camera_{idx}"
+            )
+            RESOLUTION = 400
+            render_product = rep.create.render_product(
+                cam, resolution=(RESOLUTION, RESOLUTION)
+            )
+            rgb = rep.AnnotatorRegistry.get_annotator("rgb")
+            rgb.attach([render_product])
+            self.render_products.append(render_product)
+            self.rgb_annotators.append(rgb)  
+
+    def render(self):
+        return [rgb.get_data() for rgb in self.rgb_annotators]
 
     def set_up_scene(self, scene, replicate_physics=True) -> None:
         """ Clones environments based on value provided in task config and applies collision filters to mask 
