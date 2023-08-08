@@ -7,7 +7,7 @@
 # license agreement from NVIDIA CORPORATION is strictly prohibited.
 #
 
-from omniisaacgymenvs.tasks.base.rl_task import RLTask
+from isaachand.tasks.shared.base_task import RLTask
 from omniisaacgymenvs.robots.articulations.franka import Franka
 from omniisaacgymenvs.robots.articulations.cabinet import Cabinet
 from omniisaacgymenvs.robots.articulations.views.franka_view import FrankaView

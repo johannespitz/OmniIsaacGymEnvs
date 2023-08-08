@@ -27,7 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-from omniisaacgymenvs.tasks.base.rl_task import RLTask
+from isaachand.tasks.shared.base_task import RLTask
 from omniisaacgymenvs.robots.articulations.crazyflie import Crazyflie
 from omniisaacgymenvs.robots.articulations.views.crazyflie_view import CrazyflieView
 

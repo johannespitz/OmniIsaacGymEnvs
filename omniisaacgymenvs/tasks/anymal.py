@@ -26,7 +26,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from omniisaacgymenvs.tasks.base.rl_task import RLTask
+from isaachand.tasks.shared.base_task import RLTask
 from omniisaacgymenvs.robots.articulations.anymal import Anymal
 from omniisaacgymenvs.robots.articulations.views.anymal_view import AnymalView
 from omniisaacgymenvs.tasks.utils.usd_utils import set_drive

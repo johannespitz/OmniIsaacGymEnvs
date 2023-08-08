@@ -34,7 +34,7 @@ Configuration defined in FactoryBase.yaml. Asset info defined in factory_asset_i
 """
 
 
-from omniisaacgymenvs.tasks.base.rl_task import RLTask
+from isaachand.tasks.shared.base_task import RLTask
 from omniisaacgymenvs.tasks.factory.factory_schema_class_base import FactoryABCBase
 from omniisaacgymenvs.tasks.factory.factory_schema_config_base import FactorySchemaConfigBase 
 from omniisaacgymenvs.robots.articulations.factory_franka import FactoryFranka

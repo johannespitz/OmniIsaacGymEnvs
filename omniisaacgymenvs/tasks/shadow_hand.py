@@ -27,7 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-from omniisaacgymenvs.tasks.base.rl_task import RLTask
+from isaachand.tasks.shared.base_task import RLTask
 from omniisaacgymenvs.tasks.shared.in_hand_manipulation import InHandManipulationTask
 from omniisaacgymenvs.robots.articulations.shadow_hand import ShadowHand
 from omniisaacgymenvs.robots.articulations.views.shadow_hand_view import ShadowHandView

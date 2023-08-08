@@ -29,7 +29,7 @@
 
 from abc import abstractmethod
 
-from omniisaacgymenvs.tasks.base.rl_task import RLTask
+from isaachand.tasks.shared.base_task import RLTask
 
 from omni.isaac.core.utils.torch.rotations import compute_heading_and_up, compute_rot, quat_conjugate
 from omni.isaac.core.utils.torch.maths import torch_rand_float, tensor_clamp, unscale

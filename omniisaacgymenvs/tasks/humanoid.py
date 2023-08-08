@@ -28,7 +28,7 @@
 
 
 from omniisaacgymenvs.tasks.shared.locomotion import LocomotionTask
-from omniisaacgymenvs.tasks.base.rl_task import RLTask
+from isaachand.tasks.shared.base_task import RLTask
 from omniisaacgymenvs.robots.articulations.humanoid import Humanoid
 
 from omni.isaac.core.utils.torch.rotations import compute_heading_and_up, compute_rot, quat_conjugate
